@@ -1,0 +1,5 @@
+.vscode
+.vscode/*
+
+**/slack-notifier
+**/slack-notifier.exe
