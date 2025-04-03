@@ -2,7 +2,7 @@
 
 ## Overview
 
-`slack-notifier` is a simple Go application for sending messages to a Slack channel using a webhook URL.
+`slack-notifier` contains a simple Go package `slack` for sending messages to a Slack channel using a webhook URL.
 
 ## Configuration
 
