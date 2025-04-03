@@ -3,24 +3,18 @@ package config
 import (
 	"flag"
 	"os"
-	"strings"
 )
 
 type Config struct {
-	prefix   string
 	keyMap   map[string]string // key: name, value: cli flag name
 	valueMap map[string]string // key: name, value: value
 }
 
-func InitConfig(prefix string) *Config {
+func InitConfig() *Config {
 	return &Config{
-		prefix: prefix,
+		keyMap:   make(map[string]string),
+		valueMap: make(map[string]string),
 	}
-}
-
-func (c Config) prefixEnvVarName(name string) string {
-	envVar := strings.Join([]string{c.prefix, name}, "-")
-	return envVar
 }
 
 func (c *Config) Add(name, cliFlag string, defaultValue string, description string) {
@@ -36,18 +30,34 @@ func (c *Config) Get(name string) (string, bool) {
 }
 
 func (c *Config) Parse() {
+	// parse CLI flags
+	flag.Parse()
+
+	// update value map
 	for name, cliFlag := range c.keyMap {
 		// check cli flag first
 		flagValue := flag.Lookup(cliFlag)
-		if flagValue != nil && flagValue.Value.String() != "" {
+		if flagValue != nil && flagValue.Value.String() != "" && flagValue.Value.String() != flagValue.DefValue {
 			c.valueMap[name] = flagValue.Value.String()
 			return
 		}
 
 		// check env var value
-		envValue := os.Getenv(c.prefixEnvVarName(name))
+		envValue := os.Getenv(name)
 		if envValue != "" {
 			c.valueMap[name] = envValue
+			return
 		}
+
+		// if both cli flag and env var not exist, use default value
+		c.valueMap[name] = flagValue.DefValue
 	}
+}
+
+func (c *Config) Configuration() []string {
+	var values []string
+	for name, value := range c.valueMap {
+		values = append(values, name+"="+value)
+	}
+	return values
 }
